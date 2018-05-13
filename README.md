@@ -9,10 +9,12 @@ Much work remains to be done with `vpn.sh` to help control set up and management
 This service was built and designed with Fedora 25+ in mind and may not (ever) work anywhere else.
 
 ## Manual updates necessary:
-```.proxy.pac - domains
+```
+.proxy.pac - domains
 etc/squid/squid.conf - DNS
 etc/bind-local/named.conf - DNS + domains
 etc/bind-proxy/named.conf - DNS + domains
 etc/openconnect/openconnect.conf - general configuration
 etc/ssh/* - your ssh keys
-docker-compose.yml - VPN Endpoint```
+docker-compose.yml - VPN Endpoint
+```
