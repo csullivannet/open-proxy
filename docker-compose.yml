@@ -1,0 +1,87 @@
+version: "3"
+services:
+  openconnect:
+    image: sparkd/openconnect
+    container_name: openconnect
+
+    environment:
+    - USER
+    - PASSWORD
+    - TOKEN
+
+    cap_add:
+    - NET_ADMIN
+
+    ports:
+    - "2444:22"
+    - "3128:3128"
+    - "33129:33129"
+    - "33130:33130"
+
+    volumes:
+    - /opt/open-proxy/etc/openconnect:/etc/openconnect:ro,z
+    - /etc/localtime:/etc/localtime:ro,z
+
+    command:
+    - "${VPN_SERVER}"
+
+    networks:
+      vpn:
+        ipv4_address: "192.168.96.2"
+
+
+  squid:
+    image: sparkd/alpine-squid
+    container_name: squid
+
+    network_mode: "service:openconnect"
+
+    volumes:
+    - /opt/open-proxy/etc/squid:/etc/squid:z
+
+    restart: unless-stopped
+
+  sshd:
+    image: sparkd/alpine-sshd
+    container_name: sshd
+
+    network_mode: "service:openconnect"
+
+    volumes:
+    - /opt/open-proxy/etc/ssh:/root/.ssh:z
+    - /opt/open-proxy/sshd:/root/bin:z
+
+    restart: unless-stopped
+
+  bind-proxy:
+    image: sparkd/alpine-bind
+    container_name: bind-proxy
+
+    network_mode: "service:openconnect"
+
+    volumes:
+    - /opt/open-proxy/etc/bind-proxy:/etc/bind:z
+    - /opt/open-proxy/log/bind-proxy:/var/log/named:z
+
+    restart: unless-stopped
+
+  bind-local:
+    image: sparkd/alpine-bind
+    container_name: bind-local
+  
+    volumes:
+    - /opt/open-proxy/etc/bind-local:/etc/bind:z
+    - /opt/open-proxy/log/bind-local:/var/log/named:z
+
+    networks:
+      vpn:
+        ipv4_address: "192.168.96.3"
+  
+    restart: unless-stopped
+
+networks:
+  vpn:
+    driver: bridge
+    ipam: 
+      config:
+      - subnet: 192.168.96.0/24
